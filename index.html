@@ -8,30 +8,40 @@
 </head>
 <body>
 
-    <div class="container">
+    <div id="game-container" class="container">
         <h1>Spelling Word Jumble</h1>
-        <p>Click the letters to spell the word!</p>
+        <p>Click the letters to spell the word correctly!</p>
         
-        <div id="answer-container">
-            <div id="answer-box" class="placeholder">Your answer will appear here</div>
-        </div>
+        <!-- Area where the answer will be built -->
+        <div id="answer-display"></div>
 
-        <div id="jumbled-word-container">
-            <!-- Letter tiles will be generated here by JavaScript -->
-        </div>
+        <!-- Container for the clickable jumbled letters -->
+        <div id="letter-container"></div>
         
+        <!-- Hint area -->
         <div id="hint-container" class="hidden">
             <p id="hint-text"></p>
         </div>
 
+        <!-- All control buttons -->
         <div id="game-controls">
-            <button id="check-btn">Check</button>
+            <button id="undo-btn">Undo</button>
             <button id="reset-btn">Reset</button>
             <button id="hint-btn">Hint</button>
         </div>
+        
+        <button id="check-btn">Check Answer</button>
 
         <p id="feedback"></p>
         <button id="next-word-btn" class="hidden">Next Word</button>
+    </div>
+
+    <!-- Final results screen -->
+    <div id="completion-container" class="container hidden">
+        <h1>Great Job!</h1>
+        <p>You've completed all the spelling words!</p>
+        <p id="final-score"></p>
+        <button id="play-again-btn">Play Again</button>
     </div>
 
     <script src="script.js"></script>
