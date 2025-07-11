@@ -1,9 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Note: "flora and fauna" was split into two separate words for better gameplay.
-    const spellingItems = [
+    // Original list of words and their corresponding hints
+    const spellingList = [
         { word: "different", hint: "We can find ___ types of plants in the Botanic Gardens." },
-        { word: "flora", hint: "Trees provide a home for ___ and fauna." },
-        { word: "fauna", hint: "Trees provide a home for flora and ___." },
+        { word: "flora and fauna", hint: "Trees provide a home for ___.", letters: "floraandfauna" },
         { word: "nutrients", hint: "A healthy diet should provide all the essential ___ that we need." },
         { word: "attracted", hint: "Flies are ___ to things that smell like rotting meat." },
         { word: "minerals", hint: "The pitcher plant needs to find ___ by eating animals." },
@@ -11,87 +10,90 @@ document.addEventListener('DOMContentLoaded', () => {
         { word: "temperature", hint: "Trees help to lower the ___ of our surroundings." },
         { word: "reproduce", hint: "Flies and beetles help the Rafflesia to ___." },
         { word: "gigantic", hint: "Rafflesia is a ___ flower." },
-        { word: "odor", hint: "The corpse flower, which blooms only once every several years, has a foul ___." }
+        { word: "odor", hint: "The corpse flower has a foul ___." }
     ];
 
+    let wordsInSession = [];
     let currentItem = {};
-    let currentAnswer = "";
-    let jumbledLetters = []; // To keep track of the letter tile elements
+    let score = 0;
+    let answerStack = []; // Tracks clicked letter buttons for the undo feature
 
     // DOM Elements
-    const jumbledContainer = document.getElementById('jumbled-word-container');
-    const answerBox = document.getElementById('answer-box');
-    const checkBtn = document.getElementById('check-btn');
-    const resetBtn = document.getElementById('reset-btn');
-    const hintBtn = document.getElementById('hint-btn');
+    const gameContainer = document.getElementById('game-container');
+    const completionContainer = document.getElementById('completion-container');
+    const letterContainer = document.getElementById('letter-container');
+    const answerDisplay = document.getElementById('answer-display');
     const feedbackElement = document.getElementById('feedback');
+    const finalScoreElement = document.getElementById('final-score');
+    
+    // Buttons
+    const checkBtn = document.getElementById('check-btn');
     const nextWordBtn = document.getElementById('next-word-btn');
+    const hintBtn = document.getElementById('hint-btn');
+    const undoBtn = document.getElementById('undo-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const playAgainBtn = document.getElementById('play-again-btn');
+
+    // Hint elements
     const hintContainer = document.getElementById('hint-container');
     const hintTextElement = document.getElementById('hint-text');
 
-    function selectAndJumbleWord() {
-        currentItem = spellingItems[Math.floor(Math.random() * spellingItems.length)];
-        let word = currentItem.word;
-        
-        let tempWord = word.split('');
-        for (let i = tempWord.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [tempWord[i], tempWord[j]] = [tempWord[j], tempWord[i]];
-        }
-        
-        if (tempWord.join('') === word && word.length > 1) {
-            selectAndJumbleWord(); // Re-jumble if it's the same as the original
-            return;
-        }
-        
-        displayJumbledWord(tempWord);
+    function startGame() {
+        // Create a copy of the spelling list for the session to avoid repeats
+        wordsInSession = [...spellingList];
+        score = 0;
+        gameContainer.classList.remove('hidden');
+        completionContainer.classList.add('hidden');
+        loadNextWord();
     }
 
-    function displayJumbledWord(letters) {
-        jumbledContainer.innerHTML = '';
-        jumbledLetters = [];
-        letters.forEach(letter => {
-            const tile = document.createElement('div');
-            tile.className = 'letter-tile';
-            tile.textContent = letter.toUpperCase();
-            tile.addEventListener('click', handleLetterClick);
-            jumbledContainer.appendChild(tile);
-            jumbledLetters.push(tile);
+    function loadNextWord() {
+        // Check if all words have been used
+        if (wordsInSession.length === 0) {
+            showCompletionScreen();
+            return;
+        }
+
+        resetForNewWord();
+
+        // Select a random item and remove it from the session pool
+        const wordIndex = Math.floor(Math.random() * wordsInSession.length);
+        currentItem = wordsInSession.splice(wordIndex, 1)[0];
+        
+        // Use custom letters for jumbling if available (for "flora and fauna"), otherwise use the word itself
+        const lettersToJumble = (currentItem.letters || currentItem.word).replace(/\s/g, '');
+        
+        // Jumble the letters
+        const jumbledLetters = lettersToJumble.split('').sort(() => Math.random() - 0.5);
+
+        // Create and display the letter buttons
+        jumbledLetters.forEach(letter => {
+            const letterBtn = document.createElement('button');
+            letterBtn.className = 'letter-btn';
+            letterBtn.textContent = letter.toUpperCase();
+            letterBtn.onclick = () => handleLetterClick(letter, letterBtn);
+            letterContainer.appendChild(letterBtn);
         });
     }
 
-    function handleLetterClick(event) {
-        const clickedTile = event.target;
-        if (clickedTile.classList.contains('disabled')) return;
-
-        if (answerBox.classList.contains('placeholder')) {
-            answerBox.textContent = '';
-            answerBox.classList.remove('placeholder');
-        }
-
-        currentAnswer += clickedTile.textContent.toLowerCase();
-        answerBox.textContent += clickedTile.textContent;
-        clickedTile.classList.add('disabled');
-    }
-
-    function resetAnswer() {
-        currentAnswer = "";
-        answerBox.textContent = "Your answer will appear here";
-        answerBox.classList.add('placeholder');
-        feedbackElement.textContent = '';
-        jumbledLetters.forEach(tile => tile.classList.remove('disabled'));
+    function handleLetterClick(letter, button) {
+        answerDisplay.textContent += letter;
+        button.disabled = true; // Gray out the button
+        answerStack.push(button); // Add to stack for undo functionality
     }
 
     function checkAnswer() {
-        if (currentAnswer === "") return; // Don't check if empty
+        const userAnswer = answerDisplay.textContent.toLowerCase();
+        const correctAnswer = currentItem.word.replace(/\s/g, ''); // Compare without spaces
 
-        if (currentAnswer === currentItem.word) {
+        if (userAnswer === correctAnswer) {
+            score++;
             feedbackElement.textContent = "Correct! Well done!";
             feedbackElement.className = 'correct';
-            nextWordBtn.classList.remove('hidden');
+            // Disable interaction until next word
             checkBtn.classList.add('hidden');
-            resetBtn.classList.add('hidden');
-            hintBtn.classList.add('hidden');
+            nextWordBtn.classList.remove('hidden');
+            disableControls();
         } else {
             feedbackElement.textContent = "Not quite, try again!";
             feedbackElement.className = 'incorrect';
@@ -101,32 +103,58 @@ document.addEventListener('DOMContentLoaded', () => {
     function showHint() {
         hintTextElement.textContent = currentItem.hint;
         hintContainer.classList.remove('hidden');
-        hintBtn.disabled = true;
+        hintBtn.disabled = true; // Only one hint per word
     }
 
-    function loadNextWord() {
+    function handleUndo() {
+        if (answerStack.length > 0) {
+            const lastButton = answerStack.pop();
+            lastButton.disabled = false; // Re-enable the button
+            answerDisplay.textContent = answerDisplay.textContent.slice(0, -1);
+        }
+    }
+
+    function handleReset() {
+        while (answerStack.length > 0) {
+            handleUndo();
+        }
+    }
+    
+    function showCompletionScreen() {
+        gameContainer.classList.add('hidden');
+        completionContainer.classList.remove('hidden');
+        finalScoreElement.textContent = `Your Score: ${score} / ${spellingList.length}`;
+    }
+
+    function resetForNewWord() {
         feedbackElement.textContent = '';
-        currentAnswer = '';
-        answerBox.textContent = 'Your answer will appear here';
-        answerBox.classList.add('placeholder');
+        answerDisplay.textContent = '';
+        letterContainer.innerHTML = ''; // Clear old letter buttons
+        answerStack = [];
 
-        hintContainer.classList.add('hidden');
         nextWordBtn.classList.add('hidden');
-        
         checkBtn.classList.remove('hidden');
-        resetBtn.classList.remove('hidden');
-        hintBtn.classList.remove('hidden');
-        hintBtn.disabled = false;
+        hintContainer.classList.add('hidden');
         
-        selectAndJumbleWord();
+        hintBtn.disabled = false;
+        undoBtn.disabled = false;
+        resetBtn.disabled = false;
     }
 
-    // Add Event Listeners
-    checkBtn.addEventListener('click', checkAnswer);
-    resetBtn.addEventListener('click', resetAnswer);
-    hintBtn.addEventListener('click', showHint);
-    nextWordBtn.addEventListener('click', loadNextWord);
+    function disableControls() {
+        hintBtn.disabled = true;
+        undoBtn.disabled = true;
+        resetBtn.disabled = true;
+    }
 
-    // Initial load
-    loadNextWord();
+    // Event Listeners
+    checkBtn.addEventListener('click', checkAnswer);
+    nextWordBtn.addEventListener('click', loadNextWord);
+    hintBtn.addEventListener('click', showHint);
+    undoBtn.addEventListener('click', handleUndo);
+    resetBtn.addEventListener('click', handleReset);
+    playAgainBtn.addEventListener('click', startGame);
+
+    // Initial game start
+    startGame();
 });
