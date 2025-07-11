@@ -36,12 +36,35 @@ h1 {
     letter-spacing: 5px;
 }
 
+#hint-container {
+    margin: 15px auto;
+    padding: 10px;
+    background-color: #fffbe6;
+    border: 1px dashed #f0ad4e;
+    border-radius: 10px;
+    color: #8a6d3b;
+}
+
+#hint-text {
+    margin: 0;
+    font-style: italic;
+    font-size: 1em;
+}
+
+#game-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
 #user-input {
     padding: 10px;
     font-size: 1em;
     width: 60%;
     border: 2px solid #ccc;
     border-radius: 5px;
+    min-width: 150px;
 }
 
 button {
@@ -53,10 +76,24 @@ button {
     background-color: #0275d8;
     color: white;
     margin-left: 10px;
+    margin-top: 5px;
 }
 
 button:hover {
     background-color: #025aa5;
+}
+
+#hint-btn {
+    background-color: #f0ad4e;
+}
+
+#hint-btn:hover {
+    background-color: #ec971f;
+}
+
+#hint-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
 }
 
 #feedback {
