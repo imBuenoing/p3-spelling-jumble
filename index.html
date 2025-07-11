@@ -10,10 +10,14 @@
 
     <div class="container">
         <h1>Spelling Word Jumble</h1>
-        <p>Unscramble the letters to spell the word correctly!</p>
+        <p>Click the letters to spell the word!</p>
         
-        <div id="word-container">
-            <p id="jumbled-word"></p>
+        <div id="answer-container">
+            <div id="answer-box" class="placeholder">Your answer will appear here</div>
+        </div>
+
+        <div id="jumbled-word-container">
+            <!-- Letter tiles will be generated here by JavaScript -->
         </div>
         
         <div id="hint-container" class="hidden">
@@ -21,8 +25,8 @@
         </div>
 
         <div id="game-controls">
-            <input type="text" id="user-input" placeholder="Type your answer here">
             <button id="check-btn">Check</button>
+            <button id="reset-btn">Reset</button>
             <button id="hint-btn">Hint</button>
         </div>
 
