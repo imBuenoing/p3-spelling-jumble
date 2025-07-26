@@ -1,16 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Original list of words and their corresponding hints
     const spellingList = [
-        { word: "different", hint: "We can find ___ types of plants in the Botanic Gardens." },
-        { word: "flora and fauna", hint: "Trees provide a home for ___.", letters: "floraandfauna" },
-        { word: "nutrients", hint: "A healthy diet should provide all the essential ___ that we need." },
-        { word: "attracted", hint: "Flies are ___ to things that smell like rotting meat." },
-        { word: "minerals", hint: "The pitcher plant needs to find ___ by eating animals." },
-        { word: "height", hint: "Sundews can reach a ___ of up to 25 centimetres." },
-        { word: "temperature", hint: "Trees help to lower the ___ of our surroundings." },
-        { word: "reproduce", hint: "Flies and beetles help the Rafflesia to ___." },
-        { word: "gigantic", hint: "Rafflesia is a ___ flower." },
-        { word: "odor", hint: "The corpse flower has a foul ___." }
+        { word: "believe", hint: "He could not ___ his eyes when he saw the treasure." },
+        { word: "collection", hint: "She was proud to show everyone her ___ of stamps." },
+        { word: "squeaked", hint: ""Let go of me, please!" the frightened boy ___ nervously." },
+        { word: "shoved", hint: "Mother was pushed and ___ as she tried to squeeze c r o w d a t t h e bazaar." },
+        { word: "stomach started to rumble", hint: "Max's ___ as he skipped his lunch." },
+        { word: "scattered", hint: "We quickly gathered up the worksheets that were ___ around
+t h e classroom." },
+        { word: "wasn't he", hint: "He was cleaning the house, ___?" },
+        { word: "hasn't she", hint: "She has been to Singapore, ___?" },
+        { word: "weren't we", hint: "We were told to be honest, ___" },
+        { word: "permission", hint: "You will need ___ from your parents to go on the learning
+journey" }
     ];
 
     let wordsInSession = [];
