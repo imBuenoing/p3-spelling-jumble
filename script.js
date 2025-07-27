@@ -1,18 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Original list of words and their corresponding hints
+    // Corrected list of words and their corresponding hints
     const spellingList = [
         { word: "believe", hint: "He could not ___ his eyes when he saw the treasure." },
         { word: "collection", hint: "She was proud to show everyone her ___ of stamps." },
-        { word: "squeaked", hint: ""Let go of me, please!" the frightened boy ___ nervously." },
-        { word: "shoved", hint: "Mother was pushed and ___ as she tried to squeeze c r o w d a t t h e bazaar." },
+        { word: "squeaked", hint: "'Let go of me, please!' the frightened boy ___ nervously." },
+        { word: "shoved", hint: "Mother was pushed and ___ as she tried to squeeze through the crowd at the bazaar." },
         { word: "stomach started to rumble", hint: "Max's ___ as he skipped his lunch." },
-        { word: "scattered", hint: "We quickly gathered up the worksheets that were ___ around
-t h e classroom." },
+        { word: "scattered", hint: "We quickly gathered up the worksheets that were ___ around the classroom." },
         { word: "wasn't he", hint: "He was cleaning the house, ___?" },
         { word: "hasn't she", hint: "She has been to Singapore, ___?" },
-        { word: "weren't we", hint: "We were told to be honest, ___" },
-        { word: "permission", hint: "You will need ___ from your parents to go on the learning
-journey" }
+        { word: "weren't we", hint: "We were told to be honest, ___?" },
+        { word: "permission", hint: "You will need ___ from your parents to go on the learning journey." }
     ];
 
     let wordsInSession = [];
@@ -41,7 +39,6 @@ journey" }
     const hintTextElement = document.getElementById('hint-text');
 
     function startGame() {
-        // Create a copy of the spelling list for the session to avoid repeats
         wordsInSession = [...spellingList];
         score = 0;
         gameContainer.classList.remove('hidden');
@@ -50,7 +47,6 @@ journey" }
     }
 
     function loadNextWord() {
-        // Check if all words have been used
         if (wordsInSession.length === 0) {
             showCompletionScreen();
             return;
@@ -58,17 +54,14 @@ journey" }
 
         resetForNewWord();
 
-        // Select a random item and remove it from the session pool
         const wordIndex = Math.floor(Math.random() * wordsInSession.length);
         currentItem = wordsInSession.splice(wordIndex, 1)[0];
         
-        // Use custom letters for jumbling if available (for "flora and fauna"), otherwise use the word itself
-        const lettersToJumble = (currentItem.letters || currentItem.word).replace(/\s/g, '');
+        // **IMPROVEMENT**: Remove all non-letter characters for jumbling
+        const lettersToJumble = currentItem.word.replace(/[^a-zA-Z]/g, '');
         
-        // Jumble the letters
         const jumbledLetters = lettersToJumble.split('').sort(() => Math.random() - 0.5);
 
-        // Create and display the letter buttons
         jumbledLetters.forEach(letter => {
             const letterBtn = document.createElement('button');
             letterBtn.className = 'letter-btn';
@@ -79,20 +72,22 @@ journey" }
     }
 
     function handleLetterClick(letter, button) {
-        answerDisplay.textContent += letter;
-        button.disabled = true; // Gray out the button
-        answerStack.push(button); // Add to stack for undo functionality
+        // We only add the letter to the display, not spaces or punctuation
+        answerDisplay.textContent += letter.toUpperCase();
+        button.disabled = true;
+        answerStack.push(button);
     }
 
     function checkAnswer() {
         const userAnswer = answerDisplay.textContent.toLowerCase();
-        const correctAnswer = currentItem.word.replace(/\s/g, ''); // Compare without spaces
+        
+        // **IMPROVEMENT**: Also remove non-letter characters from the correct answer for a fair comparison
+        const correctAnswer = currentItem.word.replace(/[^a-zA-Z]/g, '').toLowerCase();
 
         if (userAnswer === correctAnswer) {
             score++;
             feedbackElement.textContent = "Correct! Well done!";
             feedbackElement.className = 'correct';
-            // Disable interaction until next word
             checkBtn.classList.add('hidden');
             nextWordBtn.classList.remove('hidden');
             disableControls();
@@ -105,21 +100,26 @@ journey" }
     function showHint() {
         hintTextElement.textContent = currentItem.hint;
         hintContainer.classList.remove('hidden');
-        hintBtn.disabled = true; // Only one hint per word
+        hintBtn.disabled = true;
     }
 
     function handleUndo() {
         if (answerStack.length > 0) {
             const lastButton = answerStack.pop();
-            lastButton.disabled = false; // Re-enable the button
+            lastButton.disabled = false;
+            // The text in the display is already just letters, so we can just slice it
             answerDisplay.textContent = answerDisplay.textContent.slice(0, -1);
         }
     }
 
     function handleReset() {
+        // Undo all moves
         while (answerStack.length > 0) {
             handleUndo();
         }
+        // Clear feedback
+        feedbackElement.textContent = '';
+        feedbackElement.className = '';
     }
     
     function showCompletionScreen() {
@@ -131,7 +131,7 @@ journey" }
     function resetForNewWord() {
         feedbackElement.textContent = '';
         answerDisplay.textContent = '';
-        letterContainer.innerHTML = ''; // Clear old letter buttons
+        letterContainer.innerHTML = '';
         answerStack = [];
 
         nextWordBtn.classList.add('hidden');
@@ -147,6 +147,8 @@ journey" }
         hintBtn.disabled = true;
         undoBtn.disabled = true;
         resetBtn.disabled = true;
+        // Disable all letter buttons
+        document.querySelectorAll('.letter-btn').forEach(btn => btn.disabled = true);
     }
 
     // Event Listeners
