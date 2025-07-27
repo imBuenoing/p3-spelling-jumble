@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Corrected list of words and their corresponding hints
+    // Your list of words and hints
     const spellingList = [
         { word: "believe", hint: "He could not ___ his eyes when he saw the treasure." },
         { word: "collection", hint: "She was proud to show everyone her ___ of stamps." },
@@ -16,7 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let wordsInSession = [];
     let currentItem = {};
     let score = 0;
-    let answerStack = []; // Tracks clicked letter buttons for the undo feature
+    let answerState = []; // NEW: Stores the current state of the answer display ['W', '_', '_', "'", 'T']
+    let answerStack = []; // Stores {index, button} for precise undos
 
     // DOM Elements
     const gameContainer = document.getElementById('game-container');
@@ -57,9 +58,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const wordIndex = Math.floor(Math.random() * wordsInSession.length);
         currentItem = wordsInSession.splice(wordIndex, 1)[0];
         
-        // **IMPROVEMENT**: Remove all non-letter characters for jumbling
+        // **NEW LOGIC**: Create the visual template for the answer
+        answerState = currentItem.word.split('').map(char => {
+            if (char.match(/[a-zA-Z]/)) {
+                return '_'; // Placeholder for a letter
+            }
+            return char; // Keep spaces, apostrophes, etc.
+        });
+        updateAnswerDisplay();
+
+        // Jumble only the letters of the word
         const lettersToJumble = currentItem.word.replace(/[^a-zA-Z]/g, '');
-        
         const jumbledLetters = lettersToJumble.split('').sort(() => Math.random() - 0.5);
 
         jumbledLetters.forEach(letter => {
@@ -71,17 +80,24 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function updateAnswerDisplay() {
+        // Display the current state, joining with a space for clarity
+        answerDisplay.textContent = answerState.join('');
+    }
+
     function handleLetterClick(letter, button) {
-        // We only add the letter to the display, not spaces or punctuation
-        answerDisplay.textContent += letter.toUpperCase();
-        button.disabled = true;
-        answerStack.push(button);
+        // **NEW LOGIC**: Find the next available underscore to fill
+        const nextBlankIndex = answerState.indexOf('_');
+        if (nextBlankIndex !== -1) {
+            answerState[nextBlankIndex] = letter.toUpperCase();
+            button.disabled = true;
+            answerStack.push({ index: nextBlankIndex, button: button }); // Save index and button for undo
+            updateAnswerDisplay();
+        }
     }
 
     function checkAnswer() {
-        const userAnswer = answerDisplay.textContent.toLowerCase();
-        
-        // **IMPROVEMENT**: Also remove non-letter characters from the correct answer for a fair comparison
+        const userAnswer = answerState.join('').replace(/[^a-zA-Z]/g, '').toLowerCase();
         const correctAnswer = currentItem.word.replace(/[^a-zA-Z]/g, '').toLowerCase();
 
         if (userAnswer === correctAnswer) {
@@ -104,20 +120,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleUndo() {
+        // **NEW LOGIC**: Precisely undo the last letter placed
         if (answerStack.length > 0) {
-            const lastButton = answerStack.pop();
-            lastButton.disabled = false;
-            // The text in the display is already just letters, so we can just slice it
-            answerDisplay.textContent = answerDisplay.textContent.slice(0, -1);
+            const lastMove = answerStack.pop();
+            answerState[lastMove.index] = '_'; // Revert the placeholder
+            lastMove.button.disabled = false; // Re-enable the button
+            updateAnswerDisplay();
         }
     }
 
     function handleReset() {
-        // Undo all moves
         while (answerStack.length > 0) {
             handleUndo();
         }
-        // Clear feedback
         feedbackElement.textContent = '';
         feedbackElement.className = '';
     }
@@ -130,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function resetForNewWord() {
         feedbackElement.textContent = '';
-        answerDisplay.textContent = '';
         letterContainer.innerHTML = '';
         answerStack = [];
 
@@ -147,7 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
         hintBtn.disabled = true;
         undoBtn.disabled = true;
         resetBtn.disabled = true;
-        // Disable all letter buttons
         document.querySelectorAll('.letter-btn').forEach(btn => btn.disabled = true);
     }
 
@@ -159,6 +172,5 @@ document.addEventListener('DOMContentLoaded', () => {
     resetBtn.addEventListener('click', handleReset);
     playAgainBtn.addEventListener('click', startGame);
 
-    // Initial game start
     startGame();
 });
